@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: 'OmniFlux — Gestão Operacional & Governança de Workflow',
   description:
     'Plataforma de tickets internos, governança operacional e fluxo de aprovação multi-setorial dinâmico.',
+  manifest: '/manifest.json',
+  themeColor: '#182234',
 };
 
 export default function RootLayout({
@@ -14,8 +16,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className="dark">
-      <body className="min-h-screen bg-background font-sans antialiased">
+    <html lang="pt-BR">
+      <body className="min-h-screen bg-[#F1F5F9] text-[#0F172A] font-sans antialiased">
         <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
