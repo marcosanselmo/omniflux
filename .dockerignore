@@ -1,0 +1,50 @@
+# Git & Version Control
+.git
+.gitignore
+.gitattributes
+
+# Package Managers & Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnp
+.pnp.js
+
+# Next.js Build Outputs & Caches
+.next
+out
+build
+dist
+.cache
+.turbo
+
+# Environment & Secret Files (CRITICAL: Zero leak into container images)
+.env
+.env.*
+!.env.example
+
+# Local Storage, Uploads & Temporary Directories
+storage
+uploads
+tmp
+temp
+docker/data
+
+# IDEs & Developer Tools
+.vscode
+.idea
+*.swp
+*.swo
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# Documentation & CI/CD (Unless explicitly needed in build)
+*.md
+LICENSE
+.github
+tests
+coverage
