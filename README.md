@@ -138,7 +138,7 @@ As configurações do sistema são centralizadas via variáveis de ambiente. Uti
 
 Contribuições da comunidade são muito bem-vindas! Antes de submeter um Pull Request, certifique-se de:
 
-1. Consultar o manual técnico de arquitetura e padrões no arquivo [`AGENTS.md`](./AGENTS.md).
+1. Consultar o guia de arquitetura e padrões no arquivo [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 2. Garantir tipagem 100% estrita em TypeScript (proibido o uso de `any`).
 3. Validar todas as Server Actions e endpoints com schemas Zod.
 4. Manter a arquitetura estritamente Single-Tenant.

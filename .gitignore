@@ -82,3 +82,6 @@ coverage/
 tmp/
 temp/
 scratch/
+
+# Internal Agent Governance (Local only, not pushed to public repository)
+AGENTS.md
