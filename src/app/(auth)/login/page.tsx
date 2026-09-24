@@ -73,6 +73,15 @@ export default function LoginPage() {
           </p>
         </div>
 
+        {searchParams.get('setup') === 'success' && (
+          <div className="mb-6 rounded-xl border border-emerald-300 bg-emerald-50 p-4 text-xs font-semibold text-emerald-800 flex items-center gap-2">
+            <span>🎉</span>
+            <span>
+              OmniFlux configurado com sucesso! Entre com sua nova conta Master.
+            </span>
+          </div>
+        )}
+
         {errorMessage && (
           <div className="mb-6 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
             <div className="flex items-center gap-2">

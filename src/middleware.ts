@@ -36,7 +36,7 @@ export default withAuth(
         const { pathname } = req.nextUrl;
 
         // Páginas públicas
-        if (pathname === '/login') {
+        if (pathname === '/login' || pathname === '/setup') {
           return true;
         }
 

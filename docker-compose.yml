@@ -34,13 +34,12 @@ services:
     image: quay.io/minio/minio:latest
     container_name: omniflux_minio
     restart: unless-stopped
-    command: server /data --console-address ":9001"
+    command: server /data
     environment:
       MINIO_ROOT_USER: ${S3_ACCESS_KEY:-omniflux_minio_admin}
       MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:-omniflux_minio_secret}
     ports:
-      - "${S3_PORT:-9000}:9000"   # API S3
-      - "9001:9001"              # Console Administrativo Web
+      - "${S3_PORT:-9000}:9000"   # API S3 (Uploads e Leitura de Comprovantes)
     volumes:
       - minio_data:/data
     healthcheck:
@@ -73,18 +72,22 @@ services:
       - omniflux_network
 
   # ----------------------------------------------------------------------------
-  # 4. Aplicação Principal Next.js (App Router, Standalone)
+  # 4. Aplicação Principal Next.js (Ambiente de Desenvolvimento Docker com Hot-Reload)
   # ----------------------------------------------------------------------------
   web:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.dev
     container_name: omniflux_web
     restart: unless-stopped
     ports:
       - "${PORT:-3000}:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PORT: 3000
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-change-this-to-a-secure-random-32-byte-secret}

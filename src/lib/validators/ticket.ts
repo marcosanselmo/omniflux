@@ -31,6 +31,16 @@ export const createTicketSchema = z.object({
     .preprocess((val) => (val === '' || val === null || val === undefined ? undefined : Number(val)), z.number().positive('O valor monetário deve ser maior que zero.').optional()),
   dueDate: z
     .preprocess((val) => (val === '' || val === null || val === undefined ? undefined : new Date(val as string)), z.date().optional()),
+  attachments: z
+    .array(
+      z.object({
+        fileKey: z.string().min(1, 'Chave do arquivo obrigatória.'),
+        fileName: z.string().min(1, 'Nome do arquivo obrigatório.'),
+        mimeType: z.string().min(1, 'Tipo MIME obrigatório.'),
+        fileSize: z.number().int().positive('Tamanho do arquivo inválido.'),
+      })
+    )
+    .optional(),
 });
 
 export type CreateTicketInput = z.infer<typeof createTicketSchema>;

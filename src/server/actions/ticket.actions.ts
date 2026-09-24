@@ -24,6 +24,7 @@ import {
   GlobalRole,
   SectorRole,
   NotificationType,
+  AttachmentStage,
   Prisma,
 } from '@prisma/client';
 import {
@@ -55,7 +56,7 @@ export async function createTicketAction(
       };
     }
 
-    const { title, description, sectorId, priority, amount, dueDate } =
+    const { title, description, sectorId, priority, amount, dueDate, attachments } =
       parsed.data;
 
     // 1. Busca o setor de destino
@@ -135,6 +136,23 @@ export async function createTicketAction(
         },
         tx
       );
+
+      // Registra anexos probatórios da abertura se enviados
+      if (attachments && attachments.length > 0) {
+        for (const att of attachments) {
+          await tx.ticketAttachment.create({
+            data: {
+              ticketId: ticket.id,
+              uploaderId: user.id,
+              fileKey: att.fileKey,
+              fileName: att.fileName,
+              mimeType: att.mimeType,
+              fileSize: att.fileSize,
+              stage: AttachmentStage.CRIACAO,
+            },
+          });
+        }
+      }
 
       return ticket;
     });

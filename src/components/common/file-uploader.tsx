@@ -5,14 +5,14 @@ import { uploadAttachmentAction, UploadActionResult } from '@/server/actions/upl
 import { AttachmentStage } from '@prisma/client';
 
 interface FileUploaderProps {
-  ticketId: string;
+  ticketId?: string;
   stage?: AttachmentStage;
   onUploaded: (result: UploadActionResult) => void;
   allowedTypesHint?: string;
 }
 
 export function FileUploader({
-  ticketId,
+  ticketId = 'drafts',
   stage = AttachmentStage.EXECUCAO,
   onUploaded,
   allowedTypesHint = 'Imagens (JPG, PNG, WebP) ou Documentos (PDF) até 15MB',

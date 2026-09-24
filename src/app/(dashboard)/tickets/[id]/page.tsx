@@ -129,46 +129,66 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {ticket.attachments.map((att) => (
-                  <div
-                    key={att.id}
-                    className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between hover:bg-white hover:border-[#2563EB] transition group"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center shrink-0">
-                        {att.mimeType.startsWith('image/') ? (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        ) : (
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                        )}
-                      </div>
-                      <div className="overflow-hidden">
-                        <div className="text-xs font-bold text-slate-800 truncate" title={att.fileName}>
-                          {att.fileName}
-                        </div>
-                        <div className="text-[10px] text-slate-400">
-                          {(att.fileSize / 1024).toFixed(1)} KB • Por {att.uploader.name}
-                        </div>
-                      </div>
-                    </div>
-
-                    <a
-                      href={`http://localhost:9000/omniflux-media/${att.fileKey}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-slate-400 hover:text-[#2563EB] transition"
-                      title="Visualizar arquivo"
+                {ticket.attachments.map((att) => {
+                  const isCreation = att.stage === 'CRIACAO';
+                  return (
+                    <div
+                      key={att.id}
+                      className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/50 flex items-center justify-between hover:bg-white hover:border-[#2563EB] transition group"
                     >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                      </svg>
-                    </a>
-                  </div>
-                ))}
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            isCreation
+                              ? 'bg-blue-50 text-[#2563EB]'
+                              : 'bg-purple-50 text-purple-600'
+                          }`}
+                        >
+                          {att.mimeType.startsWith('image/') ? (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          ) : (
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="overflow-hidden">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
+                                isCreation
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-purple-100 text-purple-800'
+                              }`}
+                            >
+                              {isCreation ? 'Evidência (Abertura)' : 'Conclusão (Execução)'}
+                            </span>
+                          </div>
+                          <div className="text-xs font-bold text-slate-800 truncate mt-0.5" title={att.fileName}>
+                            {att.fileName}
+                          </div>
+                          <div className="text-[10px] text-slate-400">
+                            {(att.fileSize / 1024).toFixed(1)} KB • Por {att.uploader.name}
+                          </div>
+                        </div>
+                      </div>
+
+                      <a
+                        href={`http://localhost:9000/omniflux-media/${att.fileKey}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2 text-slate-400 hover:text-[#2563EB] transition"
+                        title="Visualizar arquivo"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </a>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

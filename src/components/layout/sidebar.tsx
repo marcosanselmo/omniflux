@@ -142,10 +142,12 @@ export function Sidebar({ user }: SidebarProps) {
       <div className="p-4 border-t border-[#243247]">
         <div className="px-3 py-2 rounded-lg bg-[#141d2d] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs text-slate-300 font-medium">Single-Tenant</span>
+            <span className="h-2 w-2 rounded-full bg-[#2563EB]" />
+            <span className="text-xs text-white font-bold tracking-wider">OmniFlux</span>
           </div>
-          <span className="text-[10px] text-slate-500 font-mono">v0.1.0</span>
+          <span className="text-[10px] text-sky-400 bg-sky-950/60 border border-sky-800/50 px-2 py-0.5 rounded-full font-mono font-bold">
+            v1.0.0
+          </span>
         </div>
       </div>
     </aside>

@@ -26,20 +26,13 @@ export async function uploadAttachmentAction(
     await requireAuth();
 
     const file = formData.get('file') as File | null;
-    const ticketId = formData.get('ticketId') as string | null;
-    const stageRaw = (formData.get('stage') as string | null) ?? 'EXECUCAO';
+    const ticketId = (formData.get('ticketId') as string | null) || 'drafts';
+    const stageRaw = (formData.get('stage') as string | null) ?? 'CRIACAO';
 
     if (!file || !(file instanceof File)) {
       return {
         success: false,
         error: 'Nenhum arquivo enviado para upload.',
-      };
-    }
-
-    if (!ticketId) {
-      return {
-        success: false,
-        error: 'O identificador do ticket associado é obrigatório.',
       };
     }
 

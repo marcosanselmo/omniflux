@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SectorSummary } from '@/types/sector';
-import { TicketPriority } from '@prisma/client';
+import { TicketPriority, AttachmentStage } from '@prisma/client';
 import { createTicketAction } from '@/server/actions/ticket.actions';
+import { FileUploader } from '@/components/common/file-uploader';
 
 interface TicketFormProps {
   sectors: SectorSummary[];
@@ -19,6 +20,14 @@ export function TicketForm({ sectors }: TicketFormProps) {
   const [priority, setPriority] = useState<TicketPriority>(TicketPriority.MEDIA);
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [attachments, setAttachments] = useState<
+    Array<{
+      fileKey: string;
+      fileName: string;
+      mimeType: string;
+      fileSize: number;
+    }>
+  >([]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -39,6 +48,7 @@ export function TicketForm({ sectors }: TicketFormProps) {
         priority,
         amount: selectedSector?.isFinancial && amount ? Number(amount) : undefined,
         dueDate: selectedSector?.isFinancial && dueDate ? new Date(dueDate) : undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
       });
 
       if (!res.success) {
@@ -204,6 +214,68 @@ export function TicketForm({ sectors }: TicketFormProps) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Forneça instruções claras, localização exata e detalhes operacionais para a equipe responsável..."
           className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm text-slate-800 font-normal placeholder:text-slate-400 focus:bg-white focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 focus:outline-none transition"
+        />
+      </div>
+
+      {/* 6. Anexo de Evidências / Fotos / Documentos */}
+      <div className="bg-slate-50/70 p-5 rounded-2xl border border-slate-200/80 space-y-3">
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+            Evidências & Fotos do Problema (Opcional)
+          </label>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Anexe fotos (ex: lâmpada queimada, vazamento hidráulico) ou documentos (PDF) para agilizar o atendimento.
+          </p>
+        </div>
+
+        {attachments.length > 0 && (
+          <div className="space-y-2">
+            {attachments.map((att, idx) => (
+              <div
+                key={att.fileKey}
+                className="flex items-center justify-between p-3 rounded-xl border border-slate-200 bg-white shadow-2xs"
+              >
+                <div className="flex items-center gap-2.5 truncate">
+                  <span className="text-lg shrink-0">
+                    {att.mimeType.startsWith('image/') ? '🖼️' : '📄'}
+                  </span>
+                  <div className="truncate">
+                    <span className="text-xs font-bold text-slate-800 block truncate">
+                      {att.fileName}
+                    </span>
+                    <span className="text-[10px] text-slate-400 font-mono">
+                      {(att.fileSize / 1024).toFixed(1)} KB • {att.mimeType}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setAttachments((prev) => prev.filter((_, i) => i !== idx))
+                  }
+                  className="text-xs text-rose-600 hover:text-rose-800 font-semibold px-2.5 py-1 rounded-lg hover:bg-rose-50 transition shrink-0"
+                >
+                  Remover
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <FileUploader
+          stage={AttachmentStage.CRIACAO}
+          onUploaded={(result) =>
+            setAttachments((prev) => [
+              ...prev,
+              {
+                fileKey: result.fileKey,
+                fileName: result.fileName,
+                mimeType: result.mimeType,
+                fileSize: result.fileSize,
+              },
+            ])
+          }
+          allowedTypesHint="Fotos (JPG, PNG, WebP) ou Documentos (PDF) até 15MB"
         />
       </div>
 

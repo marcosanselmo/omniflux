@@ -1,0 +1,29 @@
+# ==============================================================================
+# OMNIFLUX - DOCKERFILE PARA AMBIENTE DE DESENVOLVIMENTO
+# Execução direta com Hot-Reload, sem necessidade de rodar npm no host
+# ==============================================================================
+FROM node:20-alpine
+
+RUN apk add --no-cache libc6-compat openssl
+
+WORKDIR /app
+
+# Copia dependências primeiro para cache do Docker
+COPY package.json package-lock.json* ./
+COPY prisma ./prisma/
+
+# Instala todas as dependências
+RUN npm install
+
+# Copia o restante do código-fonte
+COPY . .
+
+# Gera o client do Prisma no ambiente Linux do contêiner
+RUN npx prisma generate
+
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["npm", "run", "dev"]
