@@ -23,8 +23,13 @@ import {
   TicketStatus,
   GlobalRole,
   SectorRole,
+  NotificationType,
   Prisma,
 } from '@prisma/client';
+import {
+  createNotification,
+  notifyUsersInSector,
+} from '@/server/services/notification.service';
 
 // ==============================================================================
 // OMNIFLUX - SERVER ACTIONS DE TICKETS E WORKFLOWS
@@ -116,6 +121,20 @@ export async function createTicketAction(
           comment: 'Chamado aberto no sistema.',
         },
       });
+
+      // Notifica os executores alocados neste setor
+      await notifyUsersInSector(
+        {
+          sectorId: sector.id,
+          roles: [SectorRole.EXECUTOR],
+          ticketId: ticket.id,
+          type: NotificationType.TICKET_CREATED,
+          title: `Novo Chamado #${String(ticket.ticketNumber).padStart(4, '0')} em ${sector.name}`,
+          message: `O chamado "${ticket.title}" foi aberto por ${user.name}.`,
+          excludeUserId: user.id,
+        },
+        tx
+      );
 
       return ticket;
     });
@@ -247,6 +266,105 @@ export async function transitionTicketAction(
           comment: comment ?? null,
         },
       });
+
+      // Disparo de notificações contextuais conforme a máquina de estados
+      const formattedNum = `#TK-${String(ticket.ticketNumber).padStart(4, '0')}`;
+
+      if (targetStatus === TicketStatus.EM_ANDAMENTO) {
+        if (ticket.requesterId !== user.id) {
+          await createNotification(
+            {
+              userId: ticket.requesterId,
+              ticketId: ticket.id,
+              type: NotificationType.TICKET_ASSIGNED,
+              title: `Chamado ${formattedNum} em andamento`,
+              message: `O executor ${user.name} assumiu o chamado "${ticket.title}".`,
+            },
+            tx
+          );
+        }
+      } else if (targetStatus === TicketStatus.AGUARDANDO_HOMOLOGACAO) {
+        // Notifica homologadores do setor
+        await notifyUsersInSector(
+          {
+            sectorId: ticket.sectorId,
+            roles: [SectorRole.HOMOLOGADOR],
+            ticketId: ticket.id,
+            type: NotificationType.HOMOLOGATION_REQUESTED,
+            title: `Chamado ${formattedNum} aguarda homologação`,
+            message: `O chamado "${ticket.title}" foi concluído e aguarda visto final de homologação.`,
+            excludeUserId: user.id,
+          },
+          tx
+        );
+        // Notifica o solicitante
+        if (ticket.requesterId !== user.id) {
+          await createNotification(
+            {
+              userId: ticket.requesterId,
+              ticketId: ticket.id,
+              type: NotificationType.HOMOLOGATION_REQUESTED,
+              title: `Chamado ${formattedNum} em homologação`,
+              message: `O chamado "${ticket.title}" foi concluído e aguarda homologação formal.`,
+            },
+            tx
+          );
+        }
+      } else if (targetStatus === TicketStatus.HOMOLOGADO_FECHADO) {
+        // Notifica o solicitante
+        if (ticket.requesterId !== user.id) {
+          await createNotification(
+            {
+              userId: ticket.requesterId,
+              ticketId: ticket.id,
+              type: NotificationType.TICKET_APPROVED,
+              title: `Chamado ${formattedNum} homologado e fechado`,
+              message: `O chamado "${ticket.title}" recebeu visto final de aprovação por ${user.name}.`,
+            },
+            tx
+          );
+        }
+        // Notifica o executor se houver
+        if (ticket.executorId && ticket.executorId !== user.id) {
+          await createNotification(
+            {
+              userId: ticket.executorId,
+              ticketId: ticket.id,
+              type: NotificationType.TICKET_APPROVED,
+              title: `Chamado ${formattedNum} aprovado`,
+              message: `O chamado "${ticket.title}" executado por você foi homologado por ${user.name}.`,
+            },
+            tx
+          );
+        }
+      } else if (targetStatus === TicketStatus.RECUSADO_REABERTO) {
+        // Notifica o executor
+        if (ticket.executorId) {
+          await createNotification(
+            {
+              userId: ticket.executorId,
+              ticketId: ticket.id,
+              type: NotificationType.TICKET_REJECTED,
+              title: `Chamado ${formattedNum} recusado para retrabalho`,
+              message: `O chamado "${ticket.title}" foi recusado por ${user.name}. Motivo: ${reason ?? 'Não especificado'}.`,
+            },
+            tx
+          );
+        }
+        // Notifica o solicitante
+        if (ticket.requesterId !== user.id && ticket.requesterId !== ticket.executorId) {
+          await createNotification(
+            {
+              userId: ticket.requesterId,
+              ticketId: ticket.id,
+              type: NotificationType.TICKET_REJECTED,
+              title: `Chamado ${formattedNum} em retrabalho`,
+              message: `O chamado "${ticket.title}" retornou para retrabalho. Motivo: ${reason ?? 'Não especificado'}.`,
+            },
+            tx
+          );
+        }
+      }
 
       return updated;
     });
