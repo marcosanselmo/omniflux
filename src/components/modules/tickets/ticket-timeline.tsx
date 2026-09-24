@@ -1,6 +1,7 @@
 import React from 'react';
 import { TicketHistoryEntry } from '@/types/ticket';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { FormattedDate } from '@/components/ui/formatted-date';
 import { TicketStatus } from '@prisma/client';
 
 interface TicketTimelineProps {
@@ -47,9 +48,11 @@ export function TicketTimeline({ history }: TicketTimelineProps) {
                       {entry.user.name}
                     </span>
                     <span className="text-slate-400 text-xs">•</span>
-                    <span className="text-[11px] text-slate-500">
-                      {new Date(entry.createdAt).toLocaleString('pt-BR')}
-                    </span>
+                    <FormattedDate
+                      date={entry.createdAt}
+                      includeTime
+                      className="text-[11px] text-slate-500"
+                    />
                   </div>
 
                   <div className="flex items-center gap-1.5">

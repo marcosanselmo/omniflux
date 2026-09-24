@@ -5,6 +5,7 @@ import { getTicketDetailsAction } from '@/server/actions/ticket.actions';
 import { requireAuth } from '@/lib/auth/session';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { PriorityBadge } from '@/components/ui/priority-badge';
+import { FormattedDate } from '@/components/ui/formatted-date';
 import { TicketActionsBar } from '@/components/modules/tickets/ticket-actions-bar';
 import { TicketTimeline } from '@/components/modules/tickets/ticket-timeline';
 
@@ -98,9 +99,7 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
                     Data de Vencimento
                   </span>
                   <span className="text-sm font-bold text-slate-800">
-                    {ticket.dueDate
-                      ? new Date(ticket.dueDate).toLocaleDateString('pt-BR')
-                      : 'Não estipulada'}
+                    <FormattedDate date={ticket.dueDate} fallback="Não estipulada" />
                   </span>
                 </div>
               </div>
@@ -225,17 +224,21 @@ export default async function TicketDetailPage({ params }: TicketDetailPageProps
 
               <div className="pt-2 border-t border-slate-100">
                 <span className="text-slate-400 block mb-0.5">Abertura:</span>
-                <span className="font-medium text-slate-700">
-                  {new Date(ticket.createdAt).toLocaleString('pt-BR')}
-                </span>
+                <FormattedDate
+                  date={ticket.createdAt}
+                  includeTime
+                  className="font-medium text-slate-700"
+                />
               </div>
 
               {ticket.closedAt && (
                 <div>
                   <span className="text-slate-400 block mb-0.5">Homologação Final:</span>
-                  <span className="font-medium text-emerald-700">
-                    {new Date(ticket.closedAt).toLocaleString('pt-BR')}
-                  </span>
+                  <FormattedDate
+                    date={ticket.closedAt}
+                    includeTime
+                    className="font-medium text-emerald-700"
+                  />
                 </div>
               )}
             </div>

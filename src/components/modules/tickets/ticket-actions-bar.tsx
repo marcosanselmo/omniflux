@@ -9,6 +9,7 @@ import { transitionTicketAction } from '@/server/actions/ticket.actions';
 import { canExecuteInSector, canHomologateInSector } from '@/lib/auth/rbac';
 import { FileUploader } from '@/components/common/file-uploader';
 import { UploadActionResult } from '@/server/actions/upload.actions';
+import { FormattedDate } from '@/components/ui/formatted-date';
 
 interface TicketActionsBarProps {
   ticket: TicketDetail;
@@ -85,8 +86,8 @@ export function TicketActionsBar({ ticket, user }: TicketActionsBarProps) {
           Este chamado foi homologado com visto final e está encerrado de forma imutável.
         </span>
         {ticket.closedAt && (
-          <span className="text-slate-500 font-normal">
-            Encerrado em: {new Date(ticket.closedAt).toLocaleString('pt-BR')}
+          <span className="text-slate-500 font-normal flex items-center gap-1">
+            Encerrado em: <FormattedDate date={ticket.closedAt} includeTime />
           </span>
         )}
       </div>

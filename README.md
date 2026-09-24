@@ -1,8 +1,8 @@
 <div align="center">
 
-# ⚡ OmniFlux
+# ⚡ OmniFlux v1.0.0
 
-**Plataforma Open Source de Gestão de Chamados Internos, Governança Operacional e Workflow Multi-Setorial Dinâmico**
+**Plataforma Open Source de Gestão de Chamados Internos, Governança Operacional e Esteira Kanban Multi-Setorial Dinâmica**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.x-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x_Strict-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
@@ -22,15 +22,61 @@
 ## 🎯 Visão do Produto & Arquitetura Single-Tenant
 
 O **OmniFlux** é uma solução **Single-Tenant (Self-Hosted)** de código aberto. Cada organização faz o deploy de sua própria instância, garantindo:
-- **Soberania Absoluta dos Dados:** Nenhum dado da sua empresa é compartilhado ou misturado com outras entidades.
-- **Zero Overhead de Multi-Tenancy:** Modelagem limpa, transações ultrarrápidas e integridade relacional nativa no PostgreSQL.
-- **Auditoria e Compliance:** Histórico imutável de todas as ações, trocas de status e aprovações com comprovantes anexados.
+- **Soberania Absoluta dos Dados:** Nenhum dado corporativo é compartilhado ou particionado com outras entidades.
+- **Zero Overhead de Multi-Tenancy:** Modelagem limpa, transações ultrarrápidas (`prisma.$transaction`) e integridade relacional nativa no PostgreSQL.
+- **Auditoria e Compliance:** Histórico imutável de todas as ações, trocas de status e aprovações com comprovantes anexados e exportação para CSV/JSON.
+
+---
+
+## 🚀 Assistente de Instalação Inicial (Setup Wizard `/setup`)
+
+Ao iniciar o OmniFlux pela primeira vez com um banco de dados limpo, o sistema direciona automaticamente para o **Wizard de Onboarding**:
+1. **Cadastro do Administrador Geral:** Definição segura do usuário Master (`ADMIN_GERAL`) com nome, e-mail corporativo e senha criptografada via bcrypt.
+2. **Seleção de Setores Padrão:** Escolha interativa dos setores essenciais para inicialização imediata:
+   - *TI & Suporte Técnico*
+   - *Manutenção Predial & Facilities*
+   - *Financeiro & Contas a Pagar (com flag `is_financial` ativa)*
+   - *Recursos Humanos & Departamento Pessoal*
+   - *Jurídico & Compliance*
+3. **Ativação Instantânea:** Sem dependência de seeds artificiais ou dados mockados. Uma vez configurado, a rota `/setup` é permanentemente bloqueada.
+
+---
+
+## 📋 Esteira Visual Kanban (Pipeline de Chamados)
+
+A gestão operacional de chamados é apresentada em um moderno **Pipeline Kanban** multi-colunas que reflete exatamente as 5 etapas da máquina de estados:
+
+1. **Abertos:** Chamados recém-criados aguardando início/atribuição.
+2. **Em Execução:** Demandas assumidas ativamente por executores do setor.
+3. **Aguardando Visto:** Demandas concluídas aguardando homologação formal do gestor.
+4. **Retrabalho:** Chamados devolvidos com justificativa formal de recusa pelo homologador.
+5. **Homologados & Fechados:** Chamados formalmente deferidos e encerrados com visto de qualidade.
+
+*Possui busca instantânea, contadores de demandas pendentes e concluídas, além de alternador para modo de Lista Detalhada (Tabela).*
+
+---
+
+## 📎 Upload de Evidências na Abertura e Conclusão
+
+- **Abertura do Chamado:** O solicitante pode anexar fotos e documentos probatórios da demanda (ex: foto de equipamento danificado, orçamentos, contratos em PDF).
+- **Conclusão da Execução:** O executor anexa os comprovantes do serviço realizado (ex: foto do reparo concluído, comprovante de quitação), atendendo à governança de setores com flag `requires_proof_file`.
+- **Armazenamento S3:** Todos os arquivos são sanitizados, nomeados com UUID v4 e armazenados de forma segura via API S3 (MinIO ou AWS S3).
+
+---
+
+## 📊 Dashboard Executivo & Métricas Operacionais
+
+O painel principal oferece:
+- **Visão dos Chamados por Etapa:** Contadores segmentados para cada fase da esteira operacional.
+- **Gráfico de Demanda por Setor:** Gráfico Donut/Pizza interativo e proporcional em SVG puro, com legenda detalhada e percentuais por área.
+- **Gráfico de Atividade Operacional:** Volume diário/semanal de chamados movimentados e taxa média de homologação.
+- **Chamados Recentes:** Tabela com badges de status com ícones temáticos dedicados e alta visibilidade.
 
 ---
 
 ## ⚙️ Motor de Setores Dinâmicos & Regras Parametrizáveis
 
-Diferente de sistemas rígidos de helpdesk, o OmniFlux é um **motor genérico de fluxos**. O Administrador cadastra setores livremente (*TI, Manutenção, Financeiro, RH, Compras, Operações*) e configura o comportamento através de flags operacionais:
+O sistema se comporta como um motor dinâmico e flexível:
 
 | Flag de Setor | Tipo | Comportamento no Fluxo |
 | :--- | :--- | :--- |
@@ -41,9 +87,7 @@ Diferente de sistemas rígidos de helpdesk, o OmniFlux é um **motor genérico d
 
 ---
 
-## 🔄 Máquina de Estados e Matriz de Aprovação
-
-O fluxo de trabalho de cada chamado segue uma esteira rigorosa de homologação em etapas:
+## 🔄 Máquina de Estados e RBAC
 
 ```
 [ ABERTO ]
@@ -51,15 +95,15 @@ O fluxo de trabalho de cada chamado segue uma esteira rigorosa de homologação 
     ▼ (Executor do setor assume a demanda)
 [ EM_ANDAMENTO ]
     │
-    ▼ (Executor conclui o trabalho e anexa o comprovante obrigatório)
+    ▼ (Executor conclui o trabalho e anexa o comprovante)
 [ AGUARDANDO_HOMOLOGACAO ]
-    ├──► [ HOMOLOGADO_FECHADO ] (Gestor/Aprovador dá o visto final - Sucesso)
-    └──► [ RECUSADO_REABERTO ]  (Gestor recusa com justificativa obrigatória de retrabalho)
+    ├──► [ HOMOLOGADO_FECHADO ] (Gestor aprova com visto final)
+    └──► [ RECUSADO_REABERTO ]  (Gestor recusa com justificativa obrigatória)
               │
-              └──────► Volta para [ EM_ANDAMENTO ]
+              └──────► Retorna para [ EM_ANDAMENTO ]
 ```
 
-### Perfis de Acesso por Setor (RBAC):
+### Perfis de Acesso por Setor:
 - **SOLICITANTE:** Cria tickets e acompanha o progresso de suas solicitações.
 - **EXECUTOR:** Membro operacional que assume tickets do setor, executa as tarefas e anexa evidências.
 - **HOMOLOGADOR / APROVADOR:** Gestor com poder de deferimento/indeferimento e visto de qualidade.
@@ -69,11 +113,10 @@ O fluxo de trabalho de cada chamado segue uma esteira rigorosa de homologação 
 
 ## 🚀 Inicialização Rápida com Docker Compose
 
-O OmniFlux vem preparado com um ambiente conteinerizado completo contendo **PostgreSQL 16**, **MinIO** (armazenamento local compatível com AWS S3) e a aplicação **Next.js**.
+O OmniFlux é executado integralmente via Docker Compose:
 
 ### Pré-requisitos
 - [Docker](https://docs.docker.com/get-docker/) e [Docker Compose](https://docs.docker.com/compose/) instalados.
-- [Node.js 20 LTS](https://nodejs.org/) (opcional, para desenvolvimento bare-metal local).
 
 ### Passo a Passo
 
@@ -83,42 +126,20 @@ O OmniFlux vem preparado com um ambiente conteinerizado completo contendo **Post
    cd omniflux
    ```
 
-2. **Configure as Variáveis de Ambiente:**
+2. **Configure o arquivo `.env`:**
    ```bash
    cp .env.example .env
    ```
-   *(Ajuste o `NEXTAUTH_SECRET` e senhas para seu ambiente).*
 
-3. **Inicie todos os serviços com Docker Compose:**
+3. **Inicie os serviços:**
    ```bash
    docker compose up -d
    ```
 
-4. **Acesse as interfaces:**
-   - **Aplicação Web OmniFlux:** [http://localhost:3000](http://localhost:3000)
-   - **Console MinIO S3:** [http://localhost:9001](http://localhost:9001) *(Usuário: `omniflux_minio_admin` / Senha: `omniflux_minio_secret`)*
+4. **Acesse:**
+   - **Aplicação Web:** [http://localhost:3000](http://localhost:3000)
+   - **Armazenamento S3:** API S3 ativa internamente na porta `9000`.
    - **Banco PostgreSQL:** `localhost:5432` *(Database: `omniflux_db`)*
-
----
-
-## 🔐 Variáveis de Ambiente
-
-As configurações do sistema são centralizadas via variáveis de ambiente. Utilize o arquivo `.env.example` como referência segura:
-
-| Variável | Descrição | Exemplo Padrão |
-| :--- | :--- | :--- |
-| `NODE_ENV` | Modo de execução do Node.js | `development` / `production` |
-| `PORT` | Porta HTTP da aplicação | `3000` |
-| `NEXTAUTH_SECRET` | Chave secreta criptográfica da sessão | *(gerada via openssl)* |
-| `NEXTAUTH_URL` | URL canônica do app | `http://localhost:3000` |
-| `DATABASE_URL` | String de conexão PostgreSQL para o Prisma | `postgresql://user:pass@localhost:5432/omniflux_db` |
-| `S3_ENDPOINT` | Host da API de Storage S3 / MinIO | `localhost` ou `minio` |
-| `S3_PORT` | Porta da API S3 | `9000` |
-| `S3_ACCESS_KEY` | Chave de acesso S3 / MinIO | `omniflux_minio_admin` |
-| `S3_SECRET_KEY` | Chave secreta S3 / MinIO | `omniflux_minio_secret` |
-| `S3_BUCKET_NAME` | Nome do bucket padrão de mídia | `omniflux-media` |
-| `MAX_UPLOAD_SIZE_MB` | Limite de tamanho por upload em MB | `15` |
-| `ALLOWED_FILE_TYPES` | Tipos MIME permitidos para anexos | `image/jpeg,image/png,application/pdf` |
 
 ---
 
@@ -126,25 +147,14 @@ As configurações do sistema são centralizadas via variáveis de ambiente. Uti
 
 - **Core:** [Next.js 14+](https://nextjs.org/) (App Router, Server Actions, Route Handlers)
 - **Linguagem:** [TypeScript 5+](https://www.typescriptlang.org/) (Strict Mode)
-- **Estilização & Componentes:** [Tailwind CSS](https://tailwindcss.com/) + [Shadcn/UI](https://ui.shadcn.com/) (Radix Primitives)
+- **Estilização:** [Tailwind CSS](https://tailwindcss.com/)
 - **Banco de Dados & ORM:** [PostgreSQL 16](https://www.postgresql.org/) + [Prisma ORM 5](https://www.prisma.io/)
 - **Armazenamento de Mídia:** [AWS SDK v3 S3](https://aws.amazon.com/sdk-for-javascript/) + [MinIO](https://min.io/)
 - **Validação de Dados:** [Zod](https://zod.dev/)
-- **Containers & Deploy:** Docker Multi-stage (`output: 'standalone'`) com usuário não-privilegiado.
-
----
-
-## 🤝 Diretrizes de Governança e Contribuição
-
-Contribuições da comunidade são muito bem-vindas! Antes de submeter um Pull Request, certifique-se de:
-
-1. Consultar o guia de arquitetura e padrões no arquivo [`CONTRIBUTING.md`](./CONTRIBUTING.md).
-2. Garantir tipagem 100% estrita em TypeScript (proibido o uso de `any`).
-3. Validar todas as Server Actions e endpoints com schemas Zod.
-4. Manter a arquitetura estritamente Single-Tenant.
+- **Containers:** Docker Compose com serviços `web`, `postgres` e `minio`.
 
 ---
 
 ## 📄 Licença
 
-Este projeto é distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](./LICENSE) para mais detalhes.
+Distribuído sob a licença **MIT**. Consulte o arquivo [LICENSE](./LICENSE) para mais detalhes.
